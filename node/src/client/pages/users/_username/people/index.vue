@@ -247,6 +247,7 @@ export default {
         vm.upload = false
         console.log(JSON.stringify(response.data))
       }).catch(function(error) {
+        console.log(error)
         vm.$store.commit('notification/FAILURE', error.response.data)
         vm.uploadLoading = false
       })

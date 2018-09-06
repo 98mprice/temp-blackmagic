@@ -50,6 +50,8 @@
     "npm-run-all": "^4.1.2",
     "nuxt": "^1.0.0-rc11",
     "pm2": "^2.8.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
     "slug": "^0.9.1",
     "source-map-support": "^0.5.0",
     "uuid": "^3.1.0",

@@ -1,5 +1,6 @@
 import fs from 'fs'
 import formidable from 'formidable'
+import request from 'request'
 import Person from './models'
 import { ServerError } from 'express-server-error'
 
@@ -45,10 +46,7 @@ export const person_index = {
           if (!person.users.includes(req.params.username)) {
             person.users.push(req.params.username)
           }
-          saveImage(person, image_blob, function (err) {
-            if (err) res.handleServerError(err)
-            else res.json(person)
-          })
+          saveImage(person, image_blob, res)
         } else if (image_path) {
           if (!person.users.includes(req.params.username)) {
             person.users.push(req.params.username)
@@ -75,10 +73,7 @@ export const person_index = {
           person.users.push(req.params.username)
         }
         if (image_blob) {
-          var saveImageErr = saveImage(person, image_blob, function (err) {
-            if (err) res.handleServerError(err)
-            else res.json(person)
-          })
+          var saveImageErr = saveImage(person, image_blob, res)
           if (saveImageErr) {
             console.log("there was an error " + saveImageErr)
             res.handleServerError(saveImageErr)
@@ -122,7 +117,7 @@ export const person_index = {
   }
 }
 
-function saveImage(person, image_blob, callback) {
+function saveImage(person, image_blob, res) {
   makeDirectoryIfDoesNotExist('src/client/static/people')
   var time = new Date().getTime();
   console.log("created directories")
@@ -132,9 +127,18 @@ function saveImage(person, image_blob, callback) {
       console.log("err", err);
       return err
     } else {
-      console.log("it was fine")
       person.image_path = `/people/${person._id}_${time}.png`
-      let saved_person = person.save(callback)
+      console.log("it was fine " + `${person._id}_${time}.png`)
+      findFace(`${person._id}_${time}.png`, res, function(err) {
+        if (err) {
+          console.log("GDFJKGHKJDFHGJD " + err)
+        } else {
+          let saved_person = person.save(function (err) {
+            if (err) res.handleServerError(err)
+            else res.json(person)
+          })
+        }
+      })
     }
   });
 }
@@ -163,6 +167,41 @@ function makeDirectoryIfDoesNotExist(dir) {
   }
 }
 
+function findFace(path, res, callback) {
+  request({
+    method: 'POST',
+    url: 'http://localhost:5000/find_face',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json'
+    },
+    body: {
+      image_src: '/people/' + path
+    },
+    json: true
+  }, function (error, response, body) {
+    console.log("DONE BOI " + error)
+    if (error) {
+      console.log(error)
+      res.status(500);
+      res.json({
+        message: 'Unable to contact AI backend server'
+      })
+      //throw new ServerError("Unable to contact AI backend server", { status: 500 })
+    }
+    console.log('body ' + body);
+    if (body == false) {
+      res.status(400);
+      res.json({
+        message: 'Cannot find face in image, please try another image'
+      })
+      //throw new ServerError("Cannot find face in image, please try another image", { status: 400 })
+    } else {
+      callback()
+    }
+  });
+}
+
 export const upload_image = {
   async post (req, res) {
     try {
@@ -171,20 +210,36 @@ export const upload_image = {
         console.log(JSON.stringify(files))
         var oldpath = files.file.path;
         var newpath = 'src/client/static/people/' + files.file.name;
-        if(!oldpath.name || oldpath.name.match(/\.(jpg|jpeg|png)$/i)) {
+        if (!oldpath.name || oldpath.name.match(/\.(jpg|jpeg|png)$/i)) {
           console.log("the file is an image");
           fs.rename(oldpath, newpath, function (err) {
             if (err) throw err;
             console.log("done " + err)
-            res.json({
-              src: '/people/' + files.file.name,
-              message: 'Successfully uploaded'
+            findFace(files.file.name, res, function(err) {
+              if (err) {
+                console.log('err' + err)
+                res.handleServerError(err)
+              } else {
+                res.json({
+                  src: '/people/' + files.file.name,
+                  message: 'Successfully uploaded'
+                })
+              }
             })
+
           });
-        }else{
+        } else {
           throw new ServerError("the file is not an image", { status: 400 })
           console.log("the file is not an image");
         }
+        /*request.post('http://localhost:5000/find_face', {
+          image_src: newpath
+        }, function (error, response, body) {
+          console.log('error:', error); // Print the error if one occurred
+          console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+          console.log('body:', body); // Print the HTML for the Google homepage.
+        });*/
+
       })
     } catch (error) {
       console.log(error)
