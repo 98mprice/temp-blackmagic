@@ -46,12 +46,12 @@
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar app fixed>
-      <v-toolbar-side-icon v-if="$store.state.user.isAuthenticated" light @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+    <v-toolbar app fixed flat color="black">
+      <v-toolbar-side-icon v-if="$store.state.user.isAuthenticated" dark @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <v-toolbar-title>{{name}}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu bottom left>
-        <v-btn icon="icon" slot="activator" light>
+        <v-btn icon="icon" slot="activator" dark>
           <v-icon>more_vert</v-icon>
         </v-btn>
         <v-list>
