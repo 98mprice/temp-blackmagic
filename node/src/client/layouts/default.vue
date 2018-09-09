@@ -3,6 +3,7 @@
     <v-navigation-drawer
       fixed
       v-model="drawer"
+      class="black"
       v-if="$store.state.user.isAuthenticated"
       app>
       <v-list class="main-list">
@@ -12,39 +13,74 @@
           </v-list-tile-avatar>
           <v-list-tile-content>
             <v-list-tile-title>
-              {{name}}
+              {{ this.$store.state.fetchedUser.username }}
               </v-list-tile-title>
           </v-list-tile-content>
-          <v-list-tile-action icon>
-            <v-btn icon light @click.stop="mini = !mini">
+          <!--<v-list-tile-action icon>
+            <v-btn icon dark @click.stop="mini = !mini">
               <v-icon light>chevron_left</v-icon>
             </v-btn>
-          </v-list-tile-action>
+          </v-list-tile-action>-->
         </v-list-tile>
       </v-list>
       <v-list>
-        <v-list-group v-for="item in items" :value="item.active" v-bind:key="item.title">
-          <v-list-tile slot="item" :ripple="!item.items" :router="!item.items" :to="item.to ? item.to : ''">
-            <v-list-tile-action icon light>
-              <v-icon icon light>{{ item.action }}</v-icon>
-            </v-list-tile-action>
-            <v-list-tile-content>
-              <v-list-tile-title>{{ item.title }}</v-list-tile-title>
-            </v-list-tile-content>
-            <v-list-tile-action v-if="item.items">
-              <v-icon light>keyboard_arrow_down</v-icon>
-            </v-list-tile-action>
+      <v-list-tile>
+        <v-list-tile-action>
+          <v-icon>home</v-icon>
+        </v-list-tile-action>
+        <v-list-tile-title>Home</v-list-tile-title>
+      </v-list-tile>
+
+      <v-list-group
+        prepend-icon="account_circle"
+        value="true"
+      >
+        <v-list-tile slot="activator">
+          <v-list-tile-title>Users</v-list-tile-title>
+        </v-list-tile>
+
+        <v-list-group
+          no-action
+          sub-group
+          value="true"
+        >
+          <v-list-tile slot="activator">
+            <v-list-tile-title>Admin</v-list-tile-title>
           </v-list-tile>
-          <v-list-tile v-for="subItem in item.items" v-bind:key="subItem.title" ripple>
-            <v-list-tile-content>
-              <v-list-tile-title>{{ subItem.title }}</v-list-tile-title>
-            </v-list-tile-content>
+
+          <v-list-tile
+            v-for="(admin, i) in admins"
+            :key="i"
+            @click=""
+          >
+            <v-list-tile-title v-text="admin[0]"></v-list-tile-title>
             <v-list-tile-action>
-              <v-icon>{{ subItem.action }}</v-icon>
+              <v-icon v-text="admin[1]"></v-icon>
             </v-list-tile-action>
           </v-list-tile>
         </v-list-group>
-      </v-list>
+
+        <v-list-group
+          sub-group
+          no-action
+        >
+          <v-list-tile slot="activator">
+            <v-list-tile-title>Actions</v-list-tile-title>
+          </v-list-tile>
+
+          <v-list-tile
+            v-for="(crud, i) in cruds"
+            :key="i"
+            @click=""
+          >
+            <v-list-tile-title v-text="crud[0]"></v-list-tile-title>
+            <v-list-tile-action>
+              <v-icon v-text="crud[1]"></v-icon>
+            </v-list-tile-action>
+          </v-list-tile>
+        </v-list-group>
+      </v-list-group>
+    </v-list>
     </v-navigation-drawer>
     <v-toolbar app fixed flat color="black">
       <v-toolbar-side-icon v-if="$store.state.user.isAuthenticated" dark @click.stop="drawer = !drawer"></v-toolbar-side-icon>
@@ -102,6 +138,16 @@ export default {
   data () {
     return {
       drawer: null,
+      admins: [
+        ['Management', 'people_outline'],
+        ['Settings', 'settings']
+      ],
+      cruds: [
+        ['Create', 'add'],
+        ['Read', 'insert_drive_file'],
+        ['Update', 'update'],
+        ['Delete', 'delete']
+      ],
       items: [
         {
           action: 'android',

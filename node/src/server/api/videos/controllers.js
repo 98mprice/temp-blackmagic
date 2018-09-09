@@ -1,6 +1,8 @@
 import fs from 'fs'
+import formidable from 'formidable'
 import Clip from './models/clip_models'
 import Video from './models/video_models'
+import ffmpeg from 'fluent-ffmpeg';
 import { ServerError } from 'express-server-error'
 
 export const video_index = {
@@ -47,32 +49,83 @@ export const video_index = {
   }
 }
 
+function baseName(str) {
+		var base = new String(str).substring(str.lastIndexOf('/') + 1);
+		if(base.lastIndexOf(".") != -1) {
+			base = base.substring(0, base.lastIndexOf("."));
+		}
+		return base;
+	}
+
 export const clip_upload = {
   /**
    *  Adds clip
    */
   async post (req, res) {
     try {
-      let video = await Video.findById(req.params.video_id)
-      if (!video) throw new ServerError('No video with that id exists at this moment.', { status: 404 })
-      let { blob } = req.body
-      console.log("uploading clip")
-      let new_clip = new Clip({ })
-      makeDirectoryIfDoesNotExist('/videos')
-      makeDirectoryIfDoesNotExist(`/videos/${req.params.video_id}`)
-      var path = `/videos/${req.params.video_id}/${new_clip._id}.mp4`
-      var buf = new Buffer(blob, 'base64'); // decode
-      fs.writeFile(path, buf, async function(err) {
-        if(err) {
-          console.log("err", err);
-          res.handleServerError(err)//throw new ServerError('Error saving video', { status: 404 })
-        } else {
-          new_clip.path = path
-          let saved_clip = await new_clip.save()
-          res.json(saved_clip)
+      console.log("ibn")
+      var form = new formidable.IncomingForm();
+      form.parse(req, async function (err, fields, files) {
+        console.log(JSON.stringify(files))
+        for (var key in files) {
+          if (files.hasOwnProperty(key)) {
+            var file = files[key]
+            var oldpath = file.path;
+            var newpath = 'src/client/static/clips/' + file.name;
+            //var filename = file.path;
+            //var basename = baseName(filename);
+            //console.log('basename ' + basename)
+            await new Promise((resolve, reject) => {
+              ffmpeg(oldpath)
+              // Generate 720P video
+              .output(newpath)
+              .videoCodec('libx264')
+              .size('426x240')
+              .on('start', function() {
+                  console.log('started');
+              })
+              .on('error', function(err) {
+                  console.log('An error occurred: ' + err.message);
+                  res.status(400);
+                  res.json({
+                    message: `An error occoured with video ${file.name}`
+                  })
+              })
+              .on('progress', function(progress) {
+                  console.log('... frames: ' + progress.frames);
+
+              })
+              .on('end', function() {
+                resolve();//console.log('Finished processing');
+
+              })
+              .run();
+            });
+            console.log('Finished processing');
+            /*fs.rename(oldpath, newpath, function (err) {
+              if (err) throw err;
+              console.log("done " + err)
+            });*/
+          }
         }
-      });
+        console.log("done!")
+        res.json({ message: 'Successfully uploaded all' })
+        /*var oldpath = files.file.path;
+        var newpath = 'src/client/static/clips/' + files.file.name;
+        if (!oldpath.name || oldpath.name.match(/\.(jpg|jpeg|png)$/i)) {
+          console.log("the file is an image");
+          fs.rename(oldpath, newpath, function (err) {
+            if (err) throw err;
+            console.log("done " + err)
+
+          });
+        } else {
+          throw new ServerError("the file is not an image", { status: 400 })
+          console.log("the file is not an image");
+        }*/
+      })
     } catch (error) {
+      console.log(error)
       res.handleServerError(error)
     }
   }

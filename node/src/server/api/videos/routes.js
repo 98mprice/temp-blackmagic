@@ -5,7 +5,7 @@ const router = Router()
 
 router.get('/:video_id', video_index.get)
 router.post('/', video_index.post)
-router.post('/:video_id/upload', clip_upload.post)
+router.post('/upload', clip_upload.post)
 router.get('/', video_index.get)
 router.get('/search/:search_term', video_search.get)
 router.get('/:video_id/transcripts/search/:search_term', transcript_search.get) //TODO: probably should use front-end search
