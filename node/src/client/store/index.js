@@ -5,7 +5,9 @@ export const state = () => {
   return {
     lists: {
       users: []
-    }
+    },
+    title: "kiui1",
+    show_toolbar: true
   }
 }
 export const mutations = {
@@ -19,6 +21,12 @@ export const mutations = {
   },
   SET_USERS (state, payload) {
     state.lists.users = payload.users
+  },
+  SET_TITLE (state, title) {
+    state.title = title;
+  },
+  SET_SHOW_TOOLBAR (state, show_toolbar) {
+    state.show_toolbar = show_toolbar;
   },
   FETCH_ALL_USERS_REQUEST () {
     console.log('Fetching all users...')

@@ -82,7 +82,7 @@
       </v-list-group>
     </v-list>
     </v-navigation-drawer>
-    <v-toolbar app fixed flat color="black">
+    <v-toolbar v-if="this.$store.state.show_toolbar" app fixed flat color="black">
       <v-toolbar-side-icon v-if="$store.state.user.isAuthenticated" dark @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <v-toolbar-title>{{name}}</v-toolbar-title>
       <v-spacer></v-spacer>
@@ -110,7 +110,7 @@
       </v-menu>
     </v-toolbar>
     <v-content app clipped-left>
-      <v-container fluid fill-height>
+      <v-container fluid fill-height class="ma-0 pa-0">
         <v-layout>
           <nuxt></nuxt>
         </v-layout>

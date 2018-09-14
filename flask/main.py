@@ -27,15 +27,8 @@ def find_face():
 	else:
 		return json.dumps(False)
 
-def run_face_detection(name):
-
-
-@app.route('/face_periods', methods=["POST"])
-def face_periods():
-	if not request.json:
-		abort(400)
-	print request.json['clip_srcs']
-	name = request.json['clip_srcs'][0]
+def run_face_detection(file_src):
+	name, file_extension = os.path.splitext(file_src)
 	path = "../node/src/client/static/face_periods/%s.npy" % name
 	if os.path.isfile(path) and os.access(path, os.R_OK):
 		print "Found it"
@@ -43,7 +36,7 @@ def face_periods():
 	else:
 		print "Couldn't find it, scanning"
 		# Open the input movie file
-		input_movie = cv2.VideoCapture('../node/src/client/static/clips/%s' % name)
+		input_movie = cv2.VideoCapture('../node/src/client/static/clips/%s' % file_src)
 		length = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
 
 		# Create an output movie file (make sure resolution/frame rate matches input video!)
@@ -93,12 +86,12 @@ def face_periods():
 
 				# If you had more than 2 faces, you could make this logic a lot prettier
 				# but I kept it simple for the demo
-				name = None
+				face_name = None
 				#print np.nonzero(np.array(match))
-				name = known_names[np.array(match).argmax()]
-				if person_log[name]["start_frame"] == None:
-					person_log[name]["start_frame"] = frame_number
-				person_log[name]["end_frame"] = frame_number
+				face_name = known_names[np.array(match).argmax()]
+				if person_log[face_name]["start_frame"] == None:
+					person_log[face_name]["start_frame"] = frame_number
+				person_log[face_name]["end_frame"] = frame_number
 				for key in person_log:
 					x = person_log[key]
 					if x["end_frame"] != None:
@@ -107,16 +100,12 @@ def face_periods():
 							x["log"].append((x["start_frame"], x["end_frame"]))
 							x["start_frame"] = None
 							x["end_frame"] = None
-				'''if match[0]:
-				    name = "Lin-Manuel Miranda"
-				elif match[1]:
-				    name = "Alex Lacamoire"'''
 
-				face_names.append(name)
+				face_names.append(face_name)
 
 			# Label the results
-			for (top, right, bottom, left), name in zip(face_locations, face_names):
-				if not name:
+			for (top, right, bottom, left), face_name in zip(face_locations, face_names):
+				if not face_name:
 					continue
 
 				# Draw a box around the face
@@ -125,7 +114,7 @@ def face_periods():
 				# Draw a label with a name below the face
 				cv2.rectangle(frame, (left, bottom - 25), (right, bottom), (0, 0, 255), cv2.FILLED)
 				font = cv2.FONT_HERSHEY_DUPLEX
-				cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
+				cv2.putText(frame, face_name, (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
 
 			# Write the resulting image to the output video file
 			print("Writing frame {} / {}".format(frame_number, length))
@@ -139,6 +128,14 @@ def face_periods():
 		np.save("../node/src/client/static/face_periods/%s.npy" % name, np.array(person_log))
 
 		return "face_periods/%s.npy" % name
+
+@app.route('/face_periods', methods=["POST"])
+def face_periods():
+	if not request.json:
+		abort(400)
+	print request.json['clip_srcs']
+	face_period_path = run_face_detection(request.json['clip_srcs'][0])
+	return face_period_path
 
 def run_autosub(file_src):
 	try:
@@ -174,6 +171,13 @@ def generate_transcript():
 			transcript_srcs.append(transcript_src)
 	return json.dumps(transcript_srcs)
 
+def get_transcript_at_frames(subtitles, frame, fps):
+	str_buf = ""
+	for subtitle in subtitles:
+		if fps*(subtitle.start).seconds >= frame[0] and fps*(subtitle.end).seconds <= frame[1]:
+			str_buf += subtitle.content + "\n"
+	return str_buf
+
 def parse_srt(path):
 	with open("../node/src/client/static/%s" % path, 'r') as file:
 	    data = file.read()
@@ -207,15 +211,34 @@ def talking_periods():
 def people_periods():
 	if not request.json:
 		abort(400)
-	transcript_src = run_autosub(request.json['clip_srcs'][0])
+	name = request.json['clip_srcs'][0]
+	transcript_src = run_autosub(name)
+	with open("../node/src/client/static/%s" % transcript_src, 'r') as file:
+		data = file.read()
+	subtitle_generator = srt.parse(data)
+	subtitles = list(subtitle_generator)
+
 	talking_periods = parse_srt(transcript_src)
+	people_periods = np.load('../node/src/client/static/%s' % run_face_detection(name)).tolist()
 	input_movie = cv2.VideoCapture('../node/src/client/static/clips/%s' % request.json['clip_srcs'][0])
 	fps = int(round(input_movie.get(cv2.CAP_PROP_FPS)))
+	print people_periods
 	for talking_period in talking_periods:
+		#talking_period = talking_periods[i]
 		#print talking_period[0].seconds
 		frame_talking_period = (fps*talking_period[0].seconds, fps*talking_period[1].seconds)
-		print frame_talking_period
-
-
+		#print 'talking', frame_talking_period
+		for key in people_periods:
+			person = people_periods[key]
+			logs = person['log']
+			for i in range(len(logs)):
+				log = logs[i]
+				if ((log[0] >= frame_talking_period[0] and log[1] <= frame_talking_period[1]) or
+					(log[0] <= frame_talking_period[0] and log[1] >= frame_talking_period[1])):
+					str = get_transcript_at_frames(subtitles, frame_talking_period, fps)
+					print key, 'talking', log, ':\n', str
+		#print 'face', people_periods['matt']['logs'][i]
+	return json.dumps(True)
+	
 if __name__ == "__main__":
 	app.run(port=5000, debug=True)
