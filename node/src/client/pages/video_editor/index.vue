@@ -59,54 +59,63 @@
         <v-icon>keyboard_arrow_down</v-icon>
       </v-btn>
     </v-layout>
-      <v-layout column align-content-center class="horiz-scroll pl-3" style="height: 100%">
+      <v-layout column align-content-center class="horiz-scroll pl-3" style="height: 80%">
         <v-layout row>
-          <div class="pos-relative">
-            <v-card class="mt-2 pa-3 colfax" light flat color="transparent" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" width="100px">
-              <i>Video<br>Footage</i>
-            </v-card>
-          </div>
+          <inspire-card-timeline
+            colour="transparent"
+            width="100px"
+            text="<i>Video<br>Footage</i>"
+            no_hover
+            no_buttons
+            >
+          </inspire-card-timeline>
           <v-flex
             v-for="(clip, index) in clips.a_roll"
             :key="index"
             px-1
             pb-2
           >
-            <!--
-            <div @mouseover="clip.hover = true" @mouseleave="clip.hover = false" class="pos-relative">
-              <v-card class="resize-drag mt-2 pa-3 colfax" light flat :color="calculateClipColour(clip)" :data-id="index" :style="'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color:' + ((clip.hover == true) ? 'rgba(0, 0, 0, 0.7)' : '#000000')" :width="secondsToWidth(clip.length)">
-                <b>{{clip.name}}</b></br>{{secondsToString(clip.length)}}
-                <video v-show="clip.hover" class="video-background" no-controls autoplay src="http://clips.vorwaerts-gmbh.de/VfE_html5.mp4" poster="http://thumb.multicastmedia.com/thumbs/aid/w/h/t1351705158/1571585.jpg"></video>
-              </v-card>
-            </div>
-          -->
             <inspire-card-timeline
-              :name="clip.name"
               :colour="calculateClipColour(clip)"
               :index="index"
-              :time="secondsToString(clip.length)"
               :width="secondsToWidth(clip.length)"
+              :clip_type="clip.type"
+              type="a_roll"
+              :text="'<b>' + clip.name + '</b></br>' + secondsToString(clip.length)"
               >
             </inspire-card-timeline>
           </v-flex>
         </v-layout>
         <v-layout row>
-          <div class="pos-relative">
-            <v-card class="pa-3 colfax" light flat color="transparent" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" width="100px">
-              <i>Music</i>
-            </v-card>
-          </div>
+          <inspire-card-timeline
+            colour="transparent"
+            width="100px"
+            text="<i>Music</i>"
+            no_hover
+            no_buttons
+            >
+          </inspire-card-timeline>
           <v-flex
-            v-for="(clip, index) in clips.a_roll"
+            v-for="(music, index) in clips.music"
             :key="index"
             px-1
             pb-2
           >
-            <div class="pos-relative">
+            <inspire-card-timeline
+              colour="#35FF57"
+              :index="index"
+              :width="secondsToWidth(music.length)"
+              :clip_type="music.type"
+              type="music"
+              no_hover
+              :text="'<b>' + music.name + '</b></br>'  + secondsToString(music.length)"
+              >
+            </inspire-card-timeline>
+            <!--<div class="pos-relative">
               <v-card class="resize-drag pa-3 colfax" light flat color="#35FF57" :data-id="index" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :width="secondsToWidth(clip.length)">
                 <b>{{clip.name}}</b>
               </v-card>
-            </div>
+            </div>-->
           </v-flex>
         </v-layout>
       </v-layout>
@@ -155,6 +164,35 @@ export default {
             name: "video 5",
             length: 143,
             type: "a"
+          }
+        ],
+        music: [
+          {
+            name: "",
+            type:"blank",
+            length: 100
+          },
+          {
+            name: "song 1",
+            length: 110
+          },
+          {
+            name: "",
+            type:"blank",
+            length: 10
+          },
+          {
+            name: "song 2",
+            length: 210
+          },
+          {
+            name: "",
+            type:"blank",
+            length: 100
+          },
+          {
+            name: "song 3",
+            length: 40
           }
         ]
       }
@@ -219,9 +257,12 @@ export default {
           /*let result = vm.clips.a_roll.filter(obj => {
             return obj.id === target.getAttribute('data-id')
           })*/
-          var result = vm.clips.a_roll[target.getAttribute('data-id')]
-          //console.log(vm.secondsToWidth(result.length) + ", " + event.rect.width)
-          result.length = vm.widthToSeconds(event.rect.width)
+          try {
+            var result = vm.clips[target.getAttribute('data-type')][target.getAttribute('data-id')]
+            result.length = vm.widthToSeconds(event.rect.width)
+          } catch (err) {
+
+          }
           /*x += event.deltaRect.left;
           target.style.webkitTransform = target.style.transform =
               'translate(' + x + 'px,' + y + 'px)';*/
@@ -271,6 +312,16 @@ export default {
 
          $video.css('transform','scale(' + val  + ',' + val + ')');
 
+      });
+    },
+    remove: function(index, type) {
+      this.clips[type].splice(index, 1);
+    },
+    add_empty: function(index, type, direction) {
+      this.clips[type].splice(index + direction, 0, {
+        name: "",
+        type:"blank",
+        length: 100
       });
     }
   },
