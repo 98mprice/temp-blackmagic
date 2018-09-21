@@ -8,7 +8,7 @@
         <span>Add empty space to right</span>
       </v-tooltip>
 
-      <v-card
+      <v-card v-ripple
         class="resize-drag"
         light
         flat
@@ -19,7 +19,7 @@
         :style="'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color:' + ((hover == true) ? 'rgba(0, 0, 0, 0.7)' : '#000000')"
         :width="width"
         >
-        <div v-if="clip_type == 'blank'" style="width: 100%; text-align: center;" class="pt-2">
+        <div v-if="clip_type == 'blank'" style="width: 100%; text-align: center;" class="pt-2 pb-2">
           <v-tooltip bottom color="black">
             <v-btn @click="remove" slot="activator" flat icon class="ma-0" color="black">
               <v-icon>close</v-icon>
@@ -36,6 +36,12 @@
                 <v-icon>filter_center_focus</v-icon>
               </v-btn>
               <span>Add empty space</span>
+            </v-tooltip>
+            <v-tooltip top color="black">
+              <v-btn @click="duplicate" slot="activator" flat icon color="black" class="ma-0">
+                <v-icon>filter_none</v-icon>
+              </v-btn>
+              <span>Duplicate</span>
             </v-tooltip>
             <v-tooltip top color="black">
               <v-btn @click="remove" slot="activator" flat icon color="black" class="ma-0">
@@ -62,6 +68,9 @@
 <script>
 export default {
   props: {
+    parent_remove: Function,
+    parent_add_empty: Function,
+    parent_duplicate: Function,
     colour: String,
     width: String,
     index: Number,
@@ -85,11 +94,15 @@ export default {
   },
   methods: {
     remove: function() {
-      this.$parent.remove(this.index, this.type)
+      this.parent_remove(this.index, this.type)
     },
     add_empty: function(direction) {
       this.show_side_buttons = false
-      this.$parent.add_empty(this.index, this.type, direction)
+      this.hover = false
+      this.parent_add_empty(this.index, this.type, direction)
+    },
+    duplicate: function() {
+      this.parent_duplicate(this.index, this.type)
     }
   }
 }

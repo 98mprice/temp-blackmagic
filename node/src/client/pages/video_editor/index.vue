@@ -69,22 +69,27 @@
             no_buttons
             >
           </inspire-card-timeline>
-          <v-flex
-            v-for="(clip, index) in clips.a_roll"
-            :key="index"
-            px-1
-            pb-2
-          >
-            <inspire-card-timeline
-              :colour="calculateClipColour(clip)"
-              :index="index"
-              :width="secondsToWidth(clip.length)"
-              :clip_type="clip.type"
-              type="a_roll"
-              :text="'<b>' + clip.name + '</b></br>' + secondsToString(clip.length)"
-              >
-            </inspire-card-timeline>
-          </v-flex>
+          <draggable v-model="clips.a_roll" style="display: inherit;">
+            <v-flex
+              v-for="(clip, index) in clips.a_roll"
+              :key="index"
+              px-1
+              pb-2
+            >
+              <inspire-card-timeline
+                :parent_remove="remove"
+                :parent_add_empty="add_empty"
+                :parent_duplicate="duplicate"
+                :colour="calculateClipColour(clip)"
+                :index="index"
+                :width="secondsToWidth(clip.length)"
+                :clip_type="clip.type"
+                type="a_roll"
+                :text="'<b>' + clip.name + '</b></br>' + secondsToString(clip.length)"
+                >
+              </inspire-card-timeline>
+            </v-flex>
+          </draggable>
         </v-layout>
         <v-layout row>
           <inspire-card-timeline
@@ -95,14 +100,72 @@
             no_buttons
             >
           </inspire-card-timeline>
+          <draggable v-model="clips.music" style="display: inherit;">
+            <v-flex
+              v-for="(music, index) in clips.music"
+              :key="index"
+              px-1
+              pb-2
+            >
+              <inspire-card-timeline
+                colour="#35FF57"
+                :parent_remove="remove"
+                :parent_add_empty="add_empty"
+                :parent_duplicate="duplicate"
+                :index="index"
+                :width="secondsToWidth(music.length)"
+                :clip_type="music.type"
+                type="music"
+                no_hover
+                :text="'<b>' + music.name + '</b></br>'  + secondsToString(music.length)"
+                >
+              </inspire-card-timeline>
+              <!--<div class="pos-relative">
+                <v-card class="resize-drag pa-3 colfax" light flat color="#35FF57" :data-id="index" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :width="secondsToWidth(clip.length)">
+                  <b>{{clip.name}}</b>
+                </v-card>
+              </div>-->
+            </v-flex>
+          </draggable>
+        </v-layout>
+        <v-layout row>
+          <inspire-card-timeline
+            colour="transparent"
+            width="100px"
+            text="<i>People</i>"
+            no_hover
+            no_buttons
+            >
+          </inspire-card-timeline>
           <v-flex
-            v-for="(music, index) in clips.music"
+            v-for="(transcript, index) in transcript_row('matt')"
             :key="index"
             px-1
             pb-2
           >
-            <inspire-card-timeline
+            {{transcript}}
+            <v-chip v-if="transcript.name" color="#FFEF4B" :style="{width: secondsToWidth(transcript.length)}" class="mt-0 mb-2 ml-0 mr-0 pa-0">
+              <v-avatar>
+                <img src="https://randomuser.me/api/portraits/men/35.jpg" alt="trevor">
+              </v-avatar>
+              {{transcript.name}}
+            </v-chip>
+            <div v-else :style="{width: secondsToWidth(transcript.length)}">
+
+            </div>
+          <!--<v-layout column v-for="(dialog, dialog_index) in clip.transcript" :style="{width: secondsToWidth(clip.length)}">
+            <v-chip color="#FFEF4B" :style="{width: secondsToWidth(dialog.length)}" class="mt-0 mb-2">
+              <v-avatar>
+                <img src="https://randomuser.me/api/portraits/men/35.jpg" alt="trevor">
+              </v-avatar>
+              Trevor Hansen
+            </v-chip>
+          </v-layout>-->
+            <!--<inspire-card-timeline
               colour="#35FF57"
+              :parent_remove="remove"
+              :parent_add_empty="add_empty"
+              :parent_duplicate="duplicate"
               :index="index"
               :width="secondsToWidth(music.length)"
               :clip_type="music.type"
@@ -110,12 +173,7 @@
               no_hover
               :text="'<b>' + music.name + '</b></br>'  + secondsToString(music.length)"
               >
-            </inspire-card-timeline>
-            <!--<div class="pos-relative">
-              <v-card class="resize-drag pa-3 colfax" light flat color="#35FF57" :data-id="index" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :width="secondsToWidth(clip.length)">
-                <b>{{clip.name}}</b>
-              </v-card>
-            </div>-->
+            </inspire-card-timeline>-->
           </v-flex>
         </v-layout>
       </v-layout>
@@ -131,9 +189,10 @@
 import _ from 'lodash'
 import axios from '~/plugins/axios'
 import $ from 'jquery'
+import draggable from 'vuedraggable'
 import inspireCardTimeline from '~/components/inspire-card-timeline.vue'
 export default {
-  components: { inspireCardTimeline },
+  components: { inspireCardTimeline, draggable },
   middleware: 'authenticated',
   data () {
     return {
@@ -143,27 +202,67 @@ export default {
           {
             name: "video 1",
             length: 100,
-            type: "a"
+            type: "a",
+            transcript: [
+              {
+                name: "matt",
+                text: "hi guys",
+                length: 50
+              }
+            ]
           },
           {
             name: "video 2",
             length: 150,
-            type: "a"
+            type: "a",
+            transcript: [
+              {
+                name: "matt",
+                text: "full 2",
+                length: 150
+              }
+            ]
           },
           {
             name: "video 3",
             length: 43,
-            type: "b"
+            type: "b",
+            transcript: [
+              {
+                name: "matt",
+                text: "unfull 3",
+                length: 20
+              },
+              {
+                name: "john",
+                text: "hi guys",
+                length: 30
+              }
+            ]
           },
           {
             name: "video 4",
             length: 110,
-            type: "b"
+            type: "b",
+            transcript: [
+              {
+                name: "matt",
+                text: "hi guys",
+                length: 50
+              }
+            ]
           },
           {
             name: "video 5",
             length: 143,
-            type: "a"
+            type: "a",
+            transcript: [
+              {
+                name: "matt",
+                text: "hi guys",
+                length: 50
+              }
+            ]
           }
         ],
         music: [
@@ -314,6 +413,9 @@ export default {
 
       });
     },
+    duplicate: function(index, type) {
+      this.clips[type].splice(index + 1, 0, _.clone(this.clips[type][index]));
+    },
     remove: function(index, type) {
       this.clips[type].splice(index, 1);
     },
@@ -321,8 +423,28 @@ export default {
       this.clips[type].splice(index + direction, 0, {
         name: "",
         type:"blank",
-        length: 100
+        length: 100,
+        transcript: [
+
+        ]
       });
+    },
+    transcript_row: function(name) {
+      var arr = []
+      arr.push(this.transcripts[0])
+      var previous_length = this.transcripts[0].length;
+      for (var i = 1; i < this.transcripts.length; i++) {
+        var transcript = this.transcripts[i]
+        if (transcript.name == name) {
+          var empty_transcript = {
+            length: transcript.start_length - previous_length
+          }
+          arr.push(empty_transcript)
+          arr.push(transcript)
+          previous_length = transcript.start_length + transcript.length
+        }
+      }
+      return arr
     }
   },
   computed: {
@@ -335,7 +457,61 @@ export default {
       } catch (err) {
         return 1280
       }
+    },
+    transcripts: function() {
+      var start_length_buf = 0;
+      for (let clip of this.clips.a_roll) {
+        if (clip.transcript.length == 0) {
+          clip.transcript.full = true
+        }
+        for (let data of clip.transcript) {
+          data.internal_length = data.length
+          if (data.length > clip.length) {
+            data.internal_length = clip.length
+          }
+          data.start_length = start_length_buf
+          if (clip.length == data.internal_length) {
+            data.full = true
+          } else {
+            data.full = false
+          }
+        }
+        start_length_buf += clip.length
+      }
+      var buf = []
+      var arr = []
+      for (let clip of this.clips.a_roll) {
+        for (let data of clip.transcript) {
+          if (data.full == false) {
+            var new_transcript = {
+              name: data.name,
+              text: "",
+              length: data.internal_length,
+              start_length: data.start_length
+            }
+            if (buf.length > 0) {
+              new_transcript.start_length = buf[0].start_length
+            }
+            for (let buf_data of buf) {
+              if (buf_data.name == new_transcript.name) {
+                new_transcript.text += buf_data.text + " "
+                new_transcript.length += buf_data.internal_length
+              }
+            }
+            new_transcript.text += data.text
+            arr.push(new_transcript)
+            buf = []
+          } else {
+            buf = buf.concat(data);
+          }
+        }
+      }
+      return arr
     }
   }
+  /*abcdefghijklmnopqreyuvqyz
+  abcdefghijjklmnopqrstuvqxyz
+  abcdefghijklmnopqrstyvwxyz
+  abcdefghijklmnopqrstyvwxyz*/
 }
 </script>
