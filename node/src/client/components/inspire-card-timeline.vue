@@ -29,7 +29,7 @@
           <span v-html="text"></span>
         </div>
         <div v-else>
-          <div v-if="!no_buttons" style="float: right;">
+          <div v-if="!no_buttons" :style="{'float': 'right', 'background-color': background_colour, 'z-index': 100, 'position': 'relative'}">
             <v-tooltip top color="black">
               <v-btn @click="show_side_buttons = !show_side_buttons"
                 slot="activator" flat icon :color="((show_side_buttons == true) ? 'white' : 'black')" class="ma-0">
@@ -50,7 +50,7 @@
               <span>Remove clip</span>
             </v-tooltip>
           </div>
-          <div v-html="((clip_type == 'blank') ? '' : text)" class="pa-3 colfax"></div>
+          <div v-html="((clip_type == 'blank') ? '' : text)" :class="((no_padding) ? 'pl-3 pt-2 pb-2' : 'pa-3 colfax')"></div>
         </div>
         <!--<video v-show="hover" class="video-background" no-controls autoplay src="http://clips.vorwaerts-gmbh.de/VfE_html5.mp4" poster="http://thumb.multicastmedia.com/thumbs/aid/w/h/t1351705158/1571585.jpg"></video>-->
       </v-card>
@@ -72,13 +72,14 @@ export default {
     parent_add_empty: Function,
     parent_duplicate: Function,
     colour: String,
-    width: String,
+    width: Number,
     index: Number,
     text: String,
     clip_type: String,
     type: String,
     no_hover: Boolean,
-    no_buttons: Boolean
+    no_buttons: Boolean,
+    no_padding: Boolean
   },
   data () {
     return {
