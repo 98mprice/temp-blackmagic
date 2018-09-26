@@ -1,5 +1,81 @@
 <template>
-  <v-flex xs12 style="position: relative;">
+  <v-flex xs12 style="position: relative; background-color: #EEEEEE">
+      <div id="foo">
+         <div id="a">
+            <div id="x">
+              <v-card color="grey lighten-3 pt-3" flat height="100%" style="border-radius: 0px !important;">
+                <div v-for="(clip, index) in clips.a_roll" class="ml-3 mt-2">
+                  <div class="colfax black--text">
+                    <b style="text-transform: uppercase;">{{clip.name}}</b>: {{secondsToString(clip.length)}}
+                  </div>
+                  <div v-for="data in clip.transcript">
+                    <v-chip color="#FFEF4B" class="mt-0 mb-2 ml-0 mr-0 pa-0" @click="scrollTimeline(leadingSeconds(index))">
+                      <v-avatar>
+                        <img src="https://randomuser.me/api/portraits/men/35.jpg" alt="trevor">
+                      </v-avatar>
+                      {{data.text}}
+                    </v-chip>
+                  </div>
+                </div>
+                <div style="height: 500px; width: 100%; background-color: #EEEEEE;"></div>
+              </v-card>
+            </div>
+            <div id="y">
+              <v-card color="grey darken-4" flat height="100%" style="border-radius: 0px !important;" id="create">
+                <v-layout column>
+                <v-toolbar flat dark color="black">
+                  <v-spacer></v-spacer>
+                    <v-tooltip bottom>
+                      <v-btn slot="activator" icon>
+                        <v-icon>save</v-icon>
+                      </v-btn>
+                      <span>Save</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                      <v-btn slot="activator" icon>
+                        <v-icon>cloud_upload</v-icon>
+                      </v-btn>
+                      <span>Recompile</span>
+                    </v-tooltip>
+                  </v-toolbar>
+                  <div style="background-color: #000000; height: 250px"></div>
+                </v-layout>
+              </v-card>
+            </div>
+
+         </div><!-- #a -->
+         <div id="b" style="z-index: 1000;">
+           <div style="height: 100%; background-color: #2DC4E4;">
+             <v-slide-y-transition>
+               <div v-show="show_timeline">
+                 <v-layout row>
+                   <v-flex xs2 offset-xs10>
+                     <v-slider class="mt-2 mr-3" light
+                     v-model="timeline_max_minutes"
+                     color="black"
+                     thumb-label
+                     step="1"
+                     min="1"
+                     max="10"
+                     ticks
+                   ></v-slider>
+                   </v-flex>
+                   <v-btn flat icon color="black" class="mr-3">
+                     <v-icon>keyboard_arrow_down</v-icon>
+                   </v-btn>
+                 </v-layout>
+                 <inspire-timeline :clips="clips" :timeline_max_minutes="timeline_max_minutes"></inspire-timeline>
+               </div>
+             </v-slide-y-transition>
+             <v-fade-transition>
+               <div v-show="show_mini_timeline" style="height: 100%;">
+                 <inspire-mini-timeline :clips="clips"></inspire-mini-timeline>
+               </div>
+             </v-fade-transition>
+           </div>
+         </div>
+       </div> <!-- end of #foo -->
+<!--
     <v-layout row wrap style="height: 100%">
       <v-flex
         xs12
@@ -59,121 +135,20 @@
         <v-icon>keyboard_arrow_down</v-icon>
       </v-btn>
     </v-layout>
-      <v-layout column align-content-center class="horiz-scroll pl-3" style="height: 80%">
-        <v-layout row>
-          <inspire-card-timeline
-            colour="transparent"
-            :width=100
-            text="<i>Video<br>Footage</i>"
-            no_hover
-            no_buttons
-            >
-          </inspire-card-timeline>
-          <draggable v-model="clips.a_roll" style="display: inherit;">
-            <v-flex
-              v-for="(clip, index) in clips.a_roll"
-              :key="index"
-              px-1
-              pb-2
-            >
-              <inspire-card-timeline
-                :parent_remove="remove"
-                :parent_add_empty="add_empty"
-                :parent_duplicate="duplicate"
-                :colour="calculateClipColour(clip)"
-                :index="index"
-                :width="secondsToWidth(clip.length)"
-                :clip_type="clip.type"
-                type="a_roll"
-                :text="'<b>' + clip.name + '</b></br>' + secondsToString(clip.length)"
-                >
-              </inspire-card-timeline>
-            </v-flex>
-          </draggable>
-        </v-layout>
-        <v-layout row>
-          <inspire-card-timeline
-            colour="transparent"
-            :width=100
-            text="<i>Music</i>"
-            no_hover
-            no_buttons
-            >
-          </inspire-card-timeline>
-          <draggable v-model="clips.music" style="display: inherit;">
-            <v-flex
-              v-for="(music, index) in clips.music"
-              :key="index"
-              px-1
-              pb-2
-            >
-              <inspire-card-timeline
-                colour="#35FF57"
-                :parent_remove="remove"
-                :parent_add_empty="add_empty"
-                :parent_duplicate="duplicate"
-                :index="index"
-                :width="secondsToWidth(music.length)"
-                :clip_type="music.type"
-                type="music"
-                no_hover
-                :text="'<b>' + music.name + '</b></br>'  + secondsToString(music.length)"
-                >
-              </inspire-card-timeline>
-              <!--<div class="pos-relative">
-                <v-card class="resize-drag pa-3 colfax" light flat color="#35FF57" :data-id="index" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :width="secondsToWidth(clip.length)">
-                  <b>{{clip.name}}</b>
-                </v-card>
-              </div>-->
-            </v-flex>
-          </draggable>
-        </v-layout>
-        <v-layout column>
-          <v-layout row v-for="name in unique_names">
-            <inspire-card-timeline
-              colour="transparent"
-              :width=100
-              :text="'<i>' + name + '</i>'"
-              no_hover
-              no_buttons
-              no_padding
-              >
-            </inspire-card-timeline>
-            <div
-              v-for="(transcript, index) in transcript_row(name)"
-              :key="index">
-                <v-card v-ripple
-                  light
-                  flat
-                  :style="'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000000; background-color: ' + ((transcript.text) ? '#FFEF4B' : 'transparent') + '; border-radius: 50px !important;'"
-                  :width="secondsToWidth(transcript.length)"
-                  >
-                  <div style="width: 100%;" class="pt-2 pb-2 pl-3">
-                    {{transcript.text}}
-                  </div>
-                </v-card>
-              </div>
-
-
-          </v-layout>
-        </v-layout>
-      </v-layout>
-<!--<v-card color="transparent" class="one"> CONTENT OVER VIDEO
-    <video class="video-background" no-controls autoplay src="http://clips.vorwaerts-gmbh.de/VfE_html5.mp4" poster="http://thumb.multicastmedia.com/thumbs/aid/w/h/t1351705158/1571585.jpg"></video>
-</v-card>-->
+      <inspire-timeline :clips="clips" :timeline_max_minutes="timeline_max_minutes"></inspire-timeline>
 
     </div>
+  -->
   </v-flex>
 </template>
 
 <script>
 import _ from 'lodash'
 import axios from '~/plugins/axios'
-import $ from 'jquery'
-import draggable from 'vuedraggable'
-import inspireCardTimeline from '~/components/inspire-card-timeline.vue'
+import inspireTimeline from '~/components/video_editor/inspire-timeline.vue'
+import inspireMiniTimeline from '~/components/video_editor/inspire-mini-timeline.vue'
 export default {
-  components: { inspireCardTimeline, draggable },
+  components: { inspireTimeline, inspireMiniTimeline },
   middleware: 'authenticated',
   data () {
     return {
@@ -188,13 +163,13 @@ export default {
             transcript: [
               {
                 name: "matt",
-                text: "hi guys",
+                text: "No capitalization. The text renders as it is. This is default",
                 start: 0,
                 length: 50
               },
               {
                 name: "john",
-                text: "hi guys",
+                text: "Transforms the first character of each word to uppercase",
                 start: 10,
                 length: 30
               }
@@ -228,7 +203,7 @@ export default {
               },
               {
                 name: "john",
-                text: "hi guys",
+                text: "Transforms all characters to uppercase",
                 start: 0,
                 length: 30
               }
@@ -256,7 +231,7 @@ export default {
             transcript: [
               {
                 name: "matt",
-                text: "hi guys",
+                text: "I want to get the height of a div in order to make the height of another div matching it. I used the method clientHeight, but It doesn't return me the good value (smaller value). Actually, It seems to return a height before all elements are charged. After some research online, I tried to put a window.load() to delay until everything is charged but it doesn't work as well. Some ideas ?",
                 start: 0,
                 length: 50
               }
@@ -298,89 +273,62 @@ export default {
             length: 40
           }
         ]
-      }
+      },
+      show_timeline: true,
+      show_mini_timeline: false
     }
   },
   head: {
     script: [
-        /*{
-          src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'
-        },*/
         {
-          src: 'https://cdn.jsdelivr.net/npm/interactjs@1.3.4/dist/interact.min.js'
+          src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'
+        },
+        {
+          src: 'https://cdn.jsdelivr.net/npm/jquery.splitter@0.27.1/js/jquery.splitter.min.js'
         }/*,
         {
           src: 'https://rawgit.com/moment/moment/2.2.1/min/moment.min.js'
         }*/
-      ]/*,
+      ],
     link: [
       { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/jquery.splitter@0.27.1/css/jquery.splitter.css' }
-    ]*/
-   },
+    ]
+  },
   mounted: function() {
     this.init()
   },
   methods: {
     init() {
-      var vm = this
-
-      vm.scaleToFill();
-
-    $('.video-background').on('loadeddata', vm.scaleToFill);
-
-    $(window).resize(function() {
-        vm.scaleToFill();
-    });
-
-      interact('.resize-drag')
-        .resizable({
-          // resize from all edges and corners
-          edges: { left: true, right: true, bottom: false, top: false },
-          // keep the edges inside the parent
-          restrictEdges: {
-            outer: 'parent',
-            endOnly: true,
-          },
-          // minimum size
-          restrictSize: {
-            min: { width: 100 },
-          },
-          inertia: true
-        })
-        .on('resizemove', function (event) {
-          var target = event.target,
-              x = (parseFloat(target.getAttribute('data-x')) || 0),
-              y = (parseFloat(target.getAttribute('data-y')) || 0);
-          // update the element's style
-          //target.style.width  = event.rect.width + 'px';
-          // translate when resizing from top or left edges
-          if (event.deltaRect.left > 0) {
-            //resizing from left
-          } else {
-
-          }
-          /*let result = vm.clips.a_roll.filter(obj => {
-            return obj.id === target.getAttribute('data-id')
-          })*/
-          try {
-            var result = vm.clips[target.getAttribute('data-type')][target.getAttribute('data-id')]
-            if (event.deltaRect.left > 0) {
-              //resizing from left
-              result.length = vm.widthToSeconds(event.rect.width)
-            } else {
-              result.length = vm.widthToSeconds(event.rect.width)
-            }
-          } catch (err) {
-
-          }
-          /*x += event.deltaRect.left;
-          target.style.webkitTransform = target.style.transform =
-              'translate(' + x + 'px,' + y + 'px)';*/
-          //target.setAttribute('data-x', x);
-          //target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height);
-        });
       this.$store.commit('SET_TITLE', "Play")
       this.$store.commit('SET_SHOW_TOOLBAR', false)
+      console.log('sadsa' + this.window_width)
+      var window_width = this.window_width
+      var vm = this
+       var splitter = $('#foo').split({
+           orientation: 'horizontal',
+           percent: true,
+           limit: 50,
+           onDrag: function(event) {
+             var perc = splitter.position()/$(document).height()
+             if (perc > 0.8) {
+               vm.show_timeline = false
+               setTimeout(function(){
+                 vm.show_mini_timeline = true
+               }, 500);
+             } else {
+               vm.show_mini_timeline = false
+               vm.show_timeline = true
+             }
+           }
+       });
+       $('#a').split({
+           orientation: 'vertical',
+           percent: true
+       });
+       $(document).ready(function(){
+          $("#foo").css("height", $(document).height() + "px");
+          $("#a").css("height", $(document).height() + "px");
+       });
     },
     secondsToString: function(d) {
       d = Number(d);
@@ -400,131 +348,21 @@ export default {
         return 400
       }
     },
-    widthToSeconds: function(width) {
-      return width/(this.window_width/(this.timeline_max_seconds))
-    },
-    calculateClipColour: function(clip) {
-      if (clip.type == "b") return "#FF35E9"
-      else return "#35DCFF"
-    },
-    scaleToFill: function() {
-      $('video.video-background').each(function(index, videoTag) {
-         var $video = $(videoTag),
-             videoRatio = videoTag.videoWidth / videoTag.videoHeight,
-             tagRatio = $video.width() / $video.height(),
-             val;
-
-         if (videoRatio < tagRatio) {
-             val = tagRatio / videoRatio * 1.02;
-         } else if (tagRatio < videoRatio) {
-             val = videoRatio / tagRatio * 1.02;
-         }
-
-         $video.css('transform','scale(' + val  + ',' + val + ')');
-
-      });
-    },
-    duplicate: function(index, type) {
-      this.clips[type].splice(index + 1, 0, _.clone(this.clips[type][index]));
-    },
-    remove: function(index, type) {
-      this.clips[type].splice(index, 1);
-    },
-    add_empty: function(index, type, direction) {
-      this.clips[type].splice(index + direction, 0, {
-        name: "",
-        type:"blank",
-        start: 0,
-        length: 100,
-        transcript: [
-
-        ]
-      });
-    },
-    transcript_row: function(name) {
-      console.log("here")
-      var arr = []
-      var buf = []
-      for (let clip of this.clips.a_roll) {
-        if (clip.type == "blank") {
-          var temp_length = 0;
-          var temp_text = '';
-          for (let buf_data of buf) {
-            temp_length += buf_data.length
-            temp_text += buf_data.text + " "
-          }
-          arr.push({
-            length: temp_length,
-            text: temp_text
-          })
-          buf = []
-          var empty_transcript = {
-            length: clip.length
-          }
-          arr.push(empty_transcript)
-        }
-        var name_found = false
-        for (let data of clip.transcript) {
-          if (data.name == name) {
-            name_found = true
-            if (data.start != 0) {
-              var empty_transcript = {
-                length: data.start
-              }
-              arr.push(empty_transcript)
-            }
-            var length = data.length
-            var text = ""
-            if ((length + data.start) >= clip.length) {
-              length = clip.length
-              text = data.text
-              var new_data = {
-                length: length,
-                text: text
-              }
-              buf.push(new_data)
-            } else {
-              for (let buf_data of buf) {
-                length += buf_data.length
-                text += buf_data.text + " "
-              }
-              text += data.text
-              var new_data = {
-                length: length,
-                text: text
-              }
-              arr.push(new_data)
-              var dist = clip.length - data.length - data.start
-              if (dist > 0) {
-                var empty_transcript = {
-                  length: dist
-                }
-                arr.push(empty_transcript)
-              }
-              buf = []
-            }
-          }
-        }
-        if (name_found == false) {
-          var temp_length = 0;
-          var temp_text = '';
-          for (let buf_data of buf) {
-            temp_length += buf_data.length
-            temp_text += buf_data.text + " "
-          }
-          arr.push({
-            length: temp_length,
-            text: temp_text
-          })
-          buf = []
-          var empty_transcript = {
-            length: clip.length
-          }
-          arr.push(empty_transcript)
-        }
+    leadingSeconds: function(index) {
+      var seconds = 0
+      for (var i = 0; i < index; i++) {
+        var clip = this.clips.a_roll[i]
+        seconds += clip.length
       }
-      console.log('arr ' + JSON.stringify(arr))
-      return arr
+      return seconds
+    },
+    scrollTimeline: function(seconds) {
+      this.animatethis($('.horiz-scroll'), 1000, this.secondsToWidth(seconds));
+    },
+    animatethis: function(targetElement, speed, seconds) {
+        $(targetElement).animate({ scrollLeft: seconds }, {
+            duration: speed
+        });
     }
   },
   computed: {
@@ -537,20 +375,7 @@ export default {
       } catch (err) {
         return 1280
       }
-    },
-    unique_names: function() {
-      var arr = []
-      for (let clip of this.clips.a_roll) {
-        for (let data of clip.transcript) {
-          if (!arr.includes(data.name)) arr.push(data.name)
-        }
-      }
-      return arr
     }
   }
-  /*abcdefghijklmnopqreyuvqyz
-  abcdefghijjklmnopqrstuvqxyz
-  abcdefghijklmnopqrstyvwxyz
-  abcdefghijklmnopqrstyvwxyz*/
 }
 </script>
