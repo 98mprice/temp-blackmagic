@@ -3,10 +3,6 @@ import mongoose from 'mongoose'
 import { ServerError } from 'express-server-error'
 
 const personSchema = new mongoose.Schema({
-  image_path: {
-    type: String,
-    unique: true
-  },
   name: {
     type: String,
     require: true
@@ -14,6 +10,9 @@ const personSchema = new mongoose.Schema({
   users: [{
     type: String,
     ref: 'User'
+  }],
+  images: [{
+    type: String
   }]
 }, {
   timestamps: true

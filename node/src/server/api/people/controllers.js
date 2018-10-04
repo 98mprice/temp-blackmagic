@@ -51,7 +51,9 @@ export const person_index = {
           if (!person.users.includes(req.params.username)) {
             person.users.push(req.params.username)
           }
-          person.image_path = image_path
+          if (!person.images.includes(image_path)) {
+            person.images.push(image_path)
+          }
           let saved_person = await person.save()
           res.json(saved_person)
         } else if (name) {
@@ -79,7 +81,9 @@ export const person_index = {
             res.handleServerError(saveImageErr)
           }
         } else {
-          person.image_path = image_path
+          if (!person.images.includes(image_path)) {
+            person.images.push(image_path)
+          }
           let saved_person = await person.save()
           res.json(saved_person)
         }
@@ -127,7 +131,10 @@ function saveImage(person, image_blob, res) {
       console.log("err", err);
       return err
     } else {
-      person.image_path = `/people/${person._id}_${time}.png`
+      var image_path = `/people/${person._id}_${time}.png`
+      if (!person.images.includes(image_path)) {
+        person.images.push(image_path)
+      }
       console.log("it was fine " + `${person._id}_${time}.png`)
       findFace(`${person._id}_${time}.png`, res, function(err) {
         if (err) {
@@ -152,7 +159,9 @@ function saveImageToFile(person, path, buf) {
       return false
     } else {
       console.log("it was fine")
-      person.image_path = path
+      if (!person.images.includes(path)) {
+        person.images.push(path)
+      }
       let saved_person = await person.save()
       return true
     }
@@ -180,24 +189,24 @@ function findFace(path, res, callback) {
     },
     json: true
   }, function (error, response, body) {
-    console.log("DONE BOI " + error)
     if (error) {
       console.log(error)
       res.status(500);
       res.json({
         message: 'Unable to contact AI backend server'
       })
-      //throw new ServerError("Unable to contact AI backend server", { status: 500 })
-    }
-    console.log('body ' + body);
-    if (body == false) {
-      res.status(400);
-      res.json({
-        message: 'Cannot find face in image, please try another image'
-      })
-      //throw new ServerError("Cannot find face in image, please try another image", { status: 400 })
+      throw new ServerError("Unable to contact AI backend server", { status: 500 })
     } else {
-      callback()
+      console.log('body ' + body);
+      if (body == false) {
+        res.status(400);
+        res.json({
+          message: 'Cannot find face in image, please try another image'
+        })
+        throw new ServerError("Cannot find face in image, please try another image", { status: 400 })
+      } else {
+        callback()
+      }
     }
   });
 }

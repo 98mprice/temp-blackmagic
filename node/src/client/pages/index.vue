@@ -6,11 +6,11 @@
           <h3 class="text-xs-center">Vueniverse<v-btn class="xs-center" router :to="{ name: 'users-username', params: { username: this.$store.state.user.username } }">
             view your profile.
           </v-btn></h3>
-          <img id="logo" :src="vueniverseLogo" alt="vueniverse_logo.svg">
+          <img id="logo" src="icon.png">
         </v-container>
         <v-container v-else align="center">
           <h3 class="text-xs-center">Vueniverse</h3>
-          <img id="logo" :src="vueniverseLogo" alt="vueniverse_logo.svg">
+          <img id="logo" src="icon.png" style="width: 50%; height: 50%;">
           <h4>Source code</h4>
           <a href="https://vueniverse.now.sh/_src" target="_blank"><h5>NOW</h5></a>
           <a href="https://www.github.com/rlindskog/vueniverse" target="_blank"><h5>Github</h5></a>
@@ -27,6 +27,9 @@ export default {
     return {
       vueniverseLogo
     }
+  },
+  mounted: function() {
+    //this.$router.push({ name: 'users-username', params: { username: this.$store.state.user.username } })
   }
 }
 </script>

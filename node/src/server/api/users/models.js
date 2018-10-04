@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
     require: true,
     minlength: 5
   },
+  imageSrc: {
+    type: String,
+    default: '/default.jpg'
+  },
+  friends: [{
+    type: String,
+    ref: 'User'
+  }],
   admin: {
     type: Boolean,
     default: false,

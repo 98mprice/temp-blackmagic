@@ -9,7 +9,7 @@
             width="500"
             persistent
           >
-            <v-btn slot="activator" flat dark>
+            <v-btn slot="activator" @click="mode = 'new'" flat dark>
               <v-icon left>add</v-icon>Add New
             </v-btn>
 
@@ -88,7 +88,7 @@
                 >
                   Make sure you have a clear &amp; direct shot of the face
                 </v-alert>
-                <v-text-field class="mt-3"
+                <v-text-field class="mt-3" v-show="mode == 'new'"
                   :counter="20"
                   label="Name"
                   v-model="selectedPersonName"
@@ -140,13 +140,14 @@
               d-flex
             >
             <v-menu
+                :min-width="300"
                 :close-on-content-click="false"
                 :nudge-width="200"
                 offset-x
                 absolute
               >
               <v-img style="border-radius: 50%;"
-                :src="person.image_path"
+                :src="person.images[0]"
                 aspect-ratio="1"
                 class="grey lighten-2 ma-1"
                 slot="activator"
@@ -169,17 +170,58 @@
                         <v-list-tile-title>{{person.name}}</v-list-tile-title>
                         <v-list-tile-sub-title>Last edited {{getFormattedDate(person.updatedAt)}}</v-list-tile-sub-title>
                       </v-list-tile-content>
-                      <v-list-tile-action>
+                      <!--<v-list-tile-action>
                         <v-btn icon>
                           <v-icon color="red" @click="deletePerson(person)">delete</v-icon>
                         </v-btn>
-                      </v-list-tile-action>
+                      </v-list-tile-action>-->
                     </v-list-tile>
                   </v-list>
-                  <v-card-actions>
-                    <v-btn flat @click="menu = false">Cancel</v-btn>
-                    <v-btn color="primary" flat @click="editPerson(person)">Edit</v-btn>
-                  </v-card-actions>
+                  <div>
+                    <v-container grid-list-sm fluid class="ma-0 pa-0">
+                      <v-layout row wrap>
+                        <v-flex
+                          @click="editPerson(person, index)"
+                          xs2
+                          d-flex
+                          v-for="(image, index) in person.images">
+                          <v-hover>
+                            <div
+                              slot-scope="{ hover }">
+                              <v-img style="border-radius: 50%;"
+                                :src="image"
+                                aspect-ratio="1"
+                                class="grey lighten-2 ma-1"
+                                slot="activator"
+                              >
+                                <v-layout
+                                  slot="placeholder"
+                                  fill-height
+                                  align-center
+                                  justify-center
+                                  ma-0
+                                >
+                                  <v-progress-circular indeterminate color="grey lighten-5"></v-progress-circular>
+                                </v-layout>
+                                <v-expand-transition>
+                                  <div
+                                    v-if="hover"
+                                    class="d-flex transition-fast-in-fast-out v-card--reveal display-3"
+                                    style="height: 100%;"
+                                  >
+                                    <v-icon color="white">edit</v-icon>
+                                  </div>
+                                </v-expand-transition>
+                              </v-img>
+                            </div>
+                          </v-hover>
+                        </v-flex>
+                        <v-btn fab flat dark color="#FF35E9" small class="pa-0 ml-0">
+                          <v-icon dark>add</v-icon>
+                        </v-btn>
+                      </v-layout>
+                    </v-container>
+                  </div>
                 </v-card>
               </v-menu>
             </v-flex>
@@ -216,7 +258,9 @@ export default {
       upload: false,
       formData: null,
       uploadLoading: false,
-      newImageSrc: null
+      newImageSrc: null,
+      selectedImageIndex: 0,
+      mode: 'new'
     }
   },
   async mounted() {
@@ -229,7 +273,7 @@ export default {
       } else if (this.newImage) {
         return 'data:image/png;base64,' + this.newImage
       } else if (this.selectedPerson) {
-        return this.selectedPerson.image_path
+        return this.selectedPerson.images[this.selectedImageIndex]
       } else {
         return "/placeholder.png"
       }
@@ -262,6 +306,9 @@ export default {
     }
   },
   methods: {
+    mouseOver: function(){
+        this.active = !this.active;
+    },
     startUpload: function() {
       this.webcam = false
       this.upload = true
@@ -341,9 +388,11 @@ export default {
         vm.$store.commit('notification/FAILURE', error.response.data)
       })
     },
-    editPerson: function(person) {
+    editPerson: function(person, index) {
       this.menu = false
       this.selectedPerson = _.clone(person)
+      this.selectedImageIndex = index
+      this.mode = 'edit'
       this.dialog = true
     },
     getFormattedDate(str) {

@@ -74,7 +74,7 @@
              </v-fade-transition>
            </div>
          </div>
-       </div> <!-- end of #foo -->
+       </div>
 <!--
     <v-layout row wrap style="height: 100%">
       <v-flex
@@ -281,17 +281,17 @@ export default {
   head: {
     script: [
         {
-          src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'
+          src: 'jquery.min.js'
         },
         {
           src: 'https://cdn.jsdelivr.net/npm/jquery.splitter@0.27.1/js/jquery.splitter.min.js'
-        }/*,
-        {
-          src: 'https://rawgit.com/moment/moment/2.2.1/min/moment.min.js'
-        }*/
+        }
       ],
     link: [
-      { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/jquery.splitter@0.27.1/css/jquery.splitter.css' }
+      {
+        rel: 'stylesheet',
+        href: 'https://cdn.jsdelivr.net/npm/jquery.splitter@0.27.1/css/jquery.splitter.css'
+      }
     ]
   },
   mounted: function() {

@@ -5,7 +5,9 @@ export const state = () => {
     username: '',
     email: '',
     firstName: '',
-    lastName: ''
+    lastName: '',
+    imageSrc: '',
+    friends: []
   }
 }
 
@@ -19,6 +21,8 @@ export const mutations = {
     state.firstName = data.firstName
     state.lastName = data.lastName
     state.email = data.email
+    state.imageSrc = data.imageSrc
+    state.friends = data.friends
     console.log('fetchUser success!')
   },
   FETCH_USER_FAILURE (state, error) {

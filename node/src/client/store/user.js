@@ -9,6 +9,8 @@ export const state = () => {
     firstName: '',
     lastName: '',
     email: '',
+    imageSrc: '',
+    friends: [],
     admin: false
   }
 }
@@ -37,6 +39,8 @@ export const mutations = {
     state.admin = data.user.admin
     state.email = data.user.email
     state.token = data.token
+    state.imageSrc = data.user.imageSrc
+    state.friends = data.user.friends
     state.isAuthenticated = true
     console.log('Sign In success!')
   },
